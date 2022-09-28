@@ -23,13 +23,16 @@ def onoff(arg1,arg2):
     os.makedirs('./{}/{}_{}/{}'.format(date_,rpm,rep,sec_),exist_ok=True)
 
     # はじめの3ファイルは0になってしまうので、これを無視して指定秒数分を取得。
-    for i in range(FPS * int(ShootingTime(rpm)[0])+3):
+    for i in range(63): #20FPSで3秒取得
         ret, frame = cap.read()
         if i>2:
             cv2.imwrite('./{}/{}_{}/{}/{}_{}_{}_{}.jpg'.format(date_,rpm,rep,sec_,rpm,rep,sec_,i-3),frame)
 
     cap.release()
     ser.write(serLow)
+    # 撮影ののち、すぐにデータ化まで
+    #exp_path = Path('./{}/{}_{}/{}'.format(date_,rpm_,rep,sec_))
+    #Raw_BW_while.raw_bw(exp_path)
 
 def main():
     signal.signal(signal.SIGALRM, onoff)
@@ -37,21 +40,6 @@ def main():
 
     while t < exp_time:
         sleep(1)
-
-def ShootingTime(rpm):
-    if int(rpm) == 47:
-        ShootingTime=1
-        FPS = 20
-    elif int(rpm) == 22:
-        ShootingTime=1
-        FPS = 15
-    elif int(rpm) == 15:
-        ShootingTime=2
-        FPS = 10
-    elif int(rpm) ==7:
-        ShootingTime=3
-        FPS = 5
-    return ShootingTime, FPS
 
 if __name__ == '__main__':
     ser = Serial('/dev/ttyACM0',9600, timeout=None)#linux
@@ -68,8 +56,7 @@ if __name__ == '__main__':
     # 4x2.5 cmを写し込む。もとのsonyは、5.2x3.5 cm。
     WIDTH = 1920
     HEIGHT = 1200
-    FPS = ShootingTime(rpm)[1]
-    print(FPS)
+    FPS = 20 #FPSは20に固定
 
     #cp = subprocess.run(["v4l2-ctl","--list-devices"] capture_output=True, text=True)
     subprocess.run(["v4l2-ctl","-d","/dev/video2","-p","{}".format(FPS)])
